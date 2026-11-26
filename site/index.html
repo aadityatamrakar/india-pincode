@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>India PIN Code API</title>
+<meta name="description" content="Free static JSON API for Indian PIN codes. No key, no signup, CORS enabled. One file per PIN with state, district and post offices.">
+<meta name="color-scheme" content="light dark">
+<style>
+:root{--bg:#fafaf7;--fg:#1c1c1a;--mut:#5f5f58;--card:#fff;--bd:#dcdcd2;--ac:#0b6b4f;--acfg:#fff;--code:#f1f1ea;--err:#b3261e;--ok:#0b6b4f}
+@media(prefers-color-scheme:dark){:root{--bg:#121412;--fg:#e8e8e0;--mut:#a3a39a;--card:#1b1d1b;--bd:#33362f;--ac:#4fc79c;--acfg:#06241a;--code:#1f221f;--err:#ff8a80;--ok:#4fc79c}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:46rem;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1{font-size:1.9rem;line-height:1.2;margin:.4rem 0 .3rem}
+h2{font-size:1.3rem;margin:2.4rem 0 .6rem;padding-top:.4rem;border-top:1px solid var(--bd)}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+p{margin:.5rem 0}
+.lead{font-size:1.1rem;color:var(--mut)}
+a{color:var(--ac)}
+code,pre,kbd{font:.88em/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--code);padding:.1em .35em;border-radius:4px;word-break:break-word}
+pre{background:var(--code);border:1px solid var(--bd);border-radius:8px;padding:.8rem 1rem;overflow-x:auto;margin:.5rem 0}
+pre code{background:none;padding:0;word-break:normal}
+.badges{display:flex;flex-wrap:wrap;gap:.4rem;margin:.8rem 0 0;padding:0;list-style:none}
+.badges li{border:1px solid var(--bd);border-radius:99px;padding:.1rem .7rem;font-size:.85rem;color:var(--mut);background:var(--card)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:1rem}
+label{display:block;font-weight:600;font-size:.9rem;margin:.7rem 0 .2rem}
+input,select{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:.6rem .7rem;min-height:2.75rem}
+input:focus,select:focus,summary:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.pin{font-size:1.4rem;letter-spacing:.2em;max-width:12rem}
+.row{display:grid;gap:0 .8rem}
+@media(min-width:34rem){.row{grid-template-columns:1fr 1fr}}
+.status{min-height:1.5rem;margin:.6rem 0 0;font-size:.95rem;color:var(--mut)}
+.status.err{color:var(--err)}
+.result h3{margin-top:.2rem}
+.result ul{margin:.3rem 0;padding-left:1.2rem}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:4px;padding:0 .35rem;margin-right:.35rem;background:var(--ac);color:var(--acfg);vertical-align:1px}
+.tag.so{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+details{margin-top:.7rem}
+summary{cursor:pointer;color:var(--mut);font-size:.92rem}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--bd);vertical-align:top}
+th{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+td:first-child{white-space:nowrap}
+.sm{font-size:.9rem;color:var(--mut)}
+footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--bd);font-size:.88rem;color:var(--mut)}
+.hp{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>India PIN Code API</h1>
+<p class="lead">Look up any Indian PIN code and get its state, district and post offices as plain JSON. Free, no API key, no signup, no rate limit. One static file per PIN, served from GitHub Pages, with CORS enabled so you can call it straight from the browser.</p>
+<ul class="badges"><li>19,586 PINs</li><li>No key</li><li>CORS: *</li><li>Static JSON</li></ul>
+</header>
+
+<h2 id="try">Try it</h2>
+<section class="card" aria-label="Look up a PIN">
+<label for="q">PIN code</label>
+<input id="q" class="pin" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" pattern="[0-9]{6}" placeholder="485001" aria-describedby="qs">
+<p id="qs" class="status" role="status" aria-live="polite">Type a 6-digit PIN code.</p>
+<div id="qr" class="result" hidden></div>
+<details id="qj" hidden><summary>Raw JSON</summary><pre><code id="qjc"></code></pre></details>
+</section>
+
+<h2 id="form">Fill a form from a PIN</h2>
+<p>The main use case: the user types a PIN and State, District and City/Town fill themselves in.</p>
+<form class="card" id="demo" autocomplete="on" onsubmit="return false">
+<label for="f-pin">PIN code</label>
+<input id="f-pin" class="pin" name="postal-code" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" pattern="[0-9]{6}" placeholder="110001">
+<div class="row">
+<div><label for="f-state">State</label><input id="f-state" name="state" autocomplete="address-level1" readonly></div>
+<div><label for="f-district">District</label><input id="f-district" name="district" readonly></div>
+</div>
+<label for="f-town">City / Town</label>
+<select id="f-town" name="town" autocomplete="address-level2" disabled><option value="">Enter a PIN first</option></select>
+<p id="fs" class="status" role="status" aria-live="polite"></p>
+</form>
+
+<h2 id="endpoints">Endpoints</h2>
+<p>Base URL: <code>https://aadityatamrakar.github.io/india-pincode/v1/</code></p>
+<div class="tw"><table>
+<thead><tr><th>Endpoint</th><th>Returns</th></tr></thead>
+<tbody>
+<tr><td><code>/v1/{pin}.json</code></td><td>One PIN: state, district, postal division/region/circle, centre point and every post office. Example: <a href="v1/485001.json">/v1/485001.json</a>. Unknown PIN: HTTP 404.</td></tr>
+<tr><td><code>/v1/states.json</code></td><td>Array of every state with PIN counts and its districts. Good for dropdowns. <a href="v1/states.json">Open</a></td></tr>
+<tr><td><code>/v1/meta.json</code></td><td>Build info: PIN, office, state and district counts, build date, data source. <a href="v1/meta.json">Open</a></td></tr>
+</tbody></table></div>
+<p class="sm">Only <code>GET</code> is supported (it is a static site). There is no search endpoint: you need the 6-digit PIN. To go the other way (district to PINs), download <code>states.json</code> and the PIN files you need.</p>
+
+<h2 id="schema">Response</h2>
+<p><code>GET /v1/485001.json</code> (offices trimmed for display; the real file lists all 16):</p>
+<pre><code>{
+  "pin": "485001",
+  "state": "Madhya Pradesh",
+  "district": "Satna",
+  "division": "Satna",
+  "region": "Jabalpur",
+  "circle": "Madhya Pradesh",
+  "lat": 24.58158,
+  "lng": 80.82406,
+  "offices": [
+    { "name": "Satna", "type": "HO", "delivery": true,
+      "lat": 24.56178, "lng": 80.83003 },
+    { "name": "Satna Civil Line", "type": "SO", "delivery": false,
+      "lat": 24.58117, "lng": 80.82364 },
+    { "name": "Satna Semaria Chowk", "type": "SO", "delivery": false },
+    { "name": "Bagha", "type": "BO", "delivery": true,
+      "lat": 24.579, "lng": 80.832 }
+  ]
+}</code></pre>
+<div class="tw"><table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>pin</code></td><td>6-digit PIN code, as a string.</td></tr>
+<tr><td><code>state</code>, <code>district</code></td><td>State / UT and district the PIN belongs to (the one most of its head and sub offices are in).</td></tr>
+<tr><td><code>division</code>, <code>region</code>, <code>circle</code></td><td>India Post administrative units, with the words "Division", "Region" and "Circle" removed.</td></tr>
+<tr><td><code>lat</code>, <code>lng</code></td><td>Approximate centre of the PIN. Omitted if the source had no usable coordinates.</td></tr>
+<tr><td><code>offices[]</code></td><td>All post offices with this PIN, sorted HO, SO, BO, then by name.</td></tr>
+<tr><td><code>offices[].name</code></td><td>Place name, without the "B.O" / "S.O" / "H.O" suffix.</td></tr>
+<tr><td><code>offices[].type</code></td><td><code>"HO"</code>, <code>"SO"</code> or <code>"BO"</code> (see below).</td></tr>
+<tr><td><code>offices[].delivery</code></td><td><code>true</code> if the office delivers mail, <code>false</code> for non-delivery offices.</td></tr>
+<tr><td><code>offices[].district</code>, <code>.state</code></td><td>Only present when the office is in a different district / state than the PIN's.</td></tr>
+<tr><td><code>offices[].lat</code>, <code>.lng</code></td><td>Only present when different from the PIN's centre point.</td></tr>
+</tbody></table></div>
+<h3>Office types</h3>
+<ul>
+<li><b>HO</b>: Head Office, the main post office of a city or division.</li>
+<li><b>SO</b>: Sub Office, a post office within a town or city area.</li>
+<li><b>BO</b>: Branch Office, usually a village post office reporting to an SO. Count the BOs to see how many villages a PIN covers.</li>
+</ul>
+
+<h2 id="code">Copy-paste examples</h2>
+<h3>JavaScript (fetch)</h3>
+<pre><code>const BASE = "https://aadityatamrakar.github.io/india-pincode/v1/";
+
+async function lookupPin(pin) {
+  const res = await fetch(BASE + pin + ".json");
+  if (res.status === 404) return null;          // PIN not found
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+const data = await lookupPin("485001");
+console.log(data.state, data.district);          // Madhya Pradesh Satna</code></pre>
+<h3>Autofill a form</h3>
+<pre><code>&lt;input id="pin" inputmode="numeric" autocomplete="postal-code" maxlength="6"&gt;
+&lt;input id="state"&gt; &lt;input id="district"&gt; &lt;select id="town"&gt;&lt;/select&gt;
+
+&lt;script&gt;
+const BASE = "https://aadityatamrakar.github.io/india-pincode/v1/";
+const cache = {};
+document.getElementById("pin").addEventListener("input", async (e) =&gt; {
+  const pin = e.target.value.trim();
+  if (!/^[1-9]\d{5}$/.test(pin)) return;
+  try {
+    const res = await fetch(BASE + pin + ".json");
+    if (!res.ok) return;                         // 404 = unknown PIN
+    const d = cache[pin] ??= await res.json();
+    state.value = d.state;
+    district.value = d.district;
+    // Prefer head/sub offices; fall back to all (some PINs have only BOs)
+    let list = d.offices.filter(o =&gt; o.type !== "BO");
+    if (!list.length) list = d.offices;
+    town.replaceChildren(...list.map(o =&gt; new Option(o.name, o.name)));
+  } catch (err) { /* offline: let the user type manually */ }
+});
+&lt;/script&gt;</code></pre>
+<h3>curl</h3>
+<pre><code>curl -s https://aadityatamrakar.github.io/india-pincode/v1/485001.json
+curl -s https://aadityatamrakar.github.io/india-pincode/v1/485001.json | jq '.offices | map(select(.type != "BO")) | map(.name)'
+curl -s -o /dev/null -w "%{http_code}\n" https://aadityatamrakar.github.io/india-pincode/v1/000000.json   # 404</code></pre>
+<h3>Python</h3>
+<pre><code>import json, urllib.request, urllib.error
+
+BASE = "https://aadityatamrakar.github.io/india-pincode/v1/"
+
+def lookup(pin):
+    try:
+        with urllib.request.urlopen(BASE + pin + ".json", timeout=10) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None
+        raise
+
+d = lookup("485001")
+print(d["state"], d["district"], len(d["offices"]))
+
+# or with requests
+# import requests
+# r = requests.get(BASE + "485001.json", timeout=10)
+# d = r.json() if r.ok else None</code></pre>
+
+<h2 id="notes">Data notes</h2>
+<p><b>Source.</b> India Post, <i>All India Pincode Directory</i>, published on <a href="https://www.data.gov.in/" rel="noopener">data.gov.in</a> under the <a href="https://data.gov.in/government-open-data-license-india" rel="noopener">Government Open Data License - India (GODL-India)</a>. This project is a derivative: attribution to India Post / data.gov.in applies to the data.</p>
+<h3>Clean-up applied</h3>
+<ul>
+<li>ALL-CAPS names converted to Title Case; names already in mixed case are kept.</li>
+<li>Office suffixes (B.O, S.O, H.O and similar) removed from names and stored in <code>type</code>.</li>
+<li>Rows with "NA" state or district filled in from the other offices of the same PIN, else from the postal division.</li>
+<li>Rows filed under a state that their postal circle does not serve (data-entry slips) are corrected the same way.</li>
+<li>Districts renamed since the directory was compiled use their current name, for example Hoshangabad to Narmadapuram, East Nimar to Khandwa, West Nimar to Khargone.</li>
+<li>Coordinates that are missing or fall outside India are dropped.</li>
+</ul>
+<h3>Caveats</h3>
+<ul>
+<li>District boundaries follow India Post and can lag newly created districts or reorganisations.</li>
+<li>Coordinates are approximate, often a shared point for many offices. Do not use them for navigation.</li>
+<li>Some PINs have no coordinates, and a few have only branch offices.</li>
+<li>This is not an official India Post service and carries no guarantee. Check with India Post for anything critical.</li>
+</ul>
+
+<h2 id="caching">Caching</h2>
+<p>GitHub Pages serves files with a short cache (about 10 minutes, <code>Cache-Control: max-age=600</code>) and rebuilds happen only when the data is updated. PIN data changes rarely, so cache responses in your app (in memory, <code>localStorage</code>, or your own CDN) rather than fetching the same PIN repeatedly. The service is best-effort with no SLA; for production traffic at scale, copy the files and host them yourself.</p>
+
+<h2 id="selfhost">Self-host / rebuild</h2>
+<p>The whole API is generated by one dependency-free Python script (3.9+). To rebuild, or to host your own copy:</p>
+<pre><code>git clone https://github.com/aadityatamrakar/india-pincode
+cd india-pincode
+python3 -I scripts/build.py data/pincode-data.csv.gz _site   # about 4 seconds
+python3 -m http.server -d _site 8765                          # preview at http://localhost:8765/</code></pre>
+<p>Upload the <code>_site</code> folder to any static host (GitHub Pages, Cloudflare Pages, Netlify, S3, nginx). Use a newer CSV by replacing <code>data/pincode-data.csv.gz</code> and rebuilding. Code is MIT licensed; see the repository for details.</p>
+
+<footer>
+<p>Data: India Post, data.gov.in, GODL-India. Not an official India Post service. <a href="https://github.com/aadityatamrakar/india-pincode" rel="noopener">Source on GitHub</a>. <span id="built"></span></p>
+</footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var cache = {};
+
+  // Fetch one PIN. Resolves to the object, or null for 404. Relative URL so it works on any base path.
+  function getPin(pin) {
+    if (cache[pin]) return Promise.resolve(cache[pin]);
+    return fetch("v1/" + pin + ".json").then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (d) { if (d) cache[pin] = d; return d; });
+  }
+
+  function el(tag, text, cls) {
+    var e = document.createElement(tag);
+    if (text != null) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  // Keep only digits and watch for the 6th one.
+  function wire(input, onPin, onClear) {
+    var last = "";
+    input.addEventListener("input", function () {
+      var v = input.value.replace(/\D/g, "").slice(0, 6);
+      if (v !== input.value) input.value = v;
+      if (v === last) return;
+      last = v;
+      if (v.length === 6) onPin(v); else onClear(v);
+    });
+  }
+
+  // ---- Try it ----
+  var qs = $("qs"), qr = $("qr"), qj = $("qj"), qjc = $("qjc"), qtoken = 0;
+  function status(node, msg, err) { node.textContent = msg; node.className = "status" + (err ? " err" : ""); }
+  function clearTry(v) {
+    qtoken++; qr.hidden = true; qj.hidden = true;
+    status(qs, v ? "Keep typing: " + v.length + " of 6 digits." : "Type a 6-digit PIN code.");
+  }
+  wire($("q"), function (pin) {
+    var t = ++qtoken;
+    status(qs, "Looking up " + pin + "...");
+    qr.hidden = true; qj.hidden = true;
+    getPin(pin).then(function (d) {
+      if (t !== qtoken) return;
+      if (!d) { status(qs, "PIN not found (HTTP 404).", true); return; }
+      status(qs, "Found.");
+      qr.replaceChildren();
+      var bo = d.offices.filter(function (o) { return o.type === "BO"; }).length;
+      var main = d.offices.filter(function (o) { return o.type !== "BO"; });
+      qr.appendChild(el("h3", d.district + ", " + d.state));
+      qr.appendChild(el("p", "Division: " + d.division + " | Circle: " + d.circle, "sm"));
+      var ul = el("ul");
+      main.forEach(function (o) {
+        var li = el("li");
+        li.appendChild(el("span", o.type, "tag" + (o.type === "SO" ? " so" : "")));
+        li.appendChild(document.createTextNode(o.name));
+        ul.appendChild(li);
+      });
+      if (main.length) qr.appendChild(ul);
+      qr.appendChild(el("p", bo ? bo + " branch office" + (bo === 1 ? "" : "s") + " (BO, villages)" : "No branch offices.", "sm"));
+      qr.hidden = false;
+      qjc.textContent = JSON.stringify(d, null, 2);
+      qj.hidden = false;
+    }).catch(function () {
+      if (t !== qtoken) return;
+      status(qs, "Network error. Check your connection and try again.", true);
+    });
+  }, clearTry);
+
+  // ---- Form demo ----
+  var fs = $("fs"), fstate = $("f-state"), fdist = $("f-district"), ftown = $("f-town"), ftoken = 0;
+  function resetForm(msg) {
+    fstate.value = ""; fdist.value = "";
+    ftown.replaceChildren(new Option(msg || "Enter a PIN first", "")); ftown.disabled = true;
+  }
+  wire($("f-pin"), function (pin) {
+    var t = ++ftoken;
+    status(fs, "Looking up " + pin + "...");
+    getPin(pin).then(function (d) {
+      if (t !== ftoken) return;
+      if (!d) { resetForm("PIN not found"); status(fs, "PIN not found. Check the number and try again.", true); return; }
+      fstate.value = d.state; fdist.value = d.district;
+      var list = d.offices.filter(function (o) { return o.type !== "BO"; });
+      if (!list.length) list = d.offices;
+      var seen = {}, opts = [];
+      list.forEach(function (o) { if (!seen[o.name]) { seen[o.name] = 1; opts.push(new Option(o.name, o.name)); } });
+      ftown.replaceChildren.apply(ftown, opts);
+      ftown.disabled = false;
+      status(fs, "Filled from " + pin + ". " + opts.length + " town option" + (opts.length === 1 ? "" : "s") + ".");
+    }).catch(function () {
+      if (t !== ftoken) return;
+      resetForm("Could not load"); status(fs, "Network error. You can enter the details manually.", true);
+    });
+  }, function () { ftoken++; resetForm(); status(fs, ""); });
+
+  // Build date from meta.json (non-blocking, optional).
+  fetch("v1/meta.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
+    if (m) $("built").textContent = "Data built " + m.built + ": " + m.pins.toLocaleString("en-IN") + " PINs, " + m.offices.toLocaleString("en-IN") + " offices.";
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>
